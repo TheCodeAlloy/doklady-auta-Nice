@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#1f5c4f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Doklady auta">
+  <title>Doklady auta · Nice</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink:#1c2b33; --soft:#5b6b73; --line:#dbe2e6; --bg:#f4f6f7;
+      --accent:#1f5c4f; --accent-soft:#e7f0ed;
+      --err:#a33232; --err-soft:#fbeaea; --ok:#1e7c45; --ok-soft:#e6f4ea;
+      --p1:#a8661f; --p2:#2c5694; --p3:#6b4a85; --p4:#4a5568;
+    }
+    * { box-sizing:border-box; }
+    html,body { margin:0; min-height:100%; background:var(--bg); color:var(--ink);
+      font-family:'IBM Plex Sans',-apple-system,sans-serif; }
+    body { display:flex; flex-direction:column; align-items:center; padding:16px 12px 40px; }
+    .card { width:100%; max-width:520px; background:#fff; border:1px solid var(--line);
+      border-top:3px solid var(--accent); border-radius:12px; padding:22px 18px; }
+    h1 { font-size:21px; margin:0 0 4px; }
+    .sub { font-size:13.5px; color:var(--soft); margin:0 0 18px; line-height:1.45; }
+    .eyebrow { font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent);
+      font-weight:600; margin:0 0 6px; }
+    label { display:block; font-size:13px; font-weight:600; margin:16px 0 6px; }
+    input,select { width:100%; padding:12px; font-size:16px; border:1px solid var(--line);
+      border-radius:8px; font-family:inherit; background:#fff; color:var(--ink); }
+    input:focus,select:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+    button { width:100%; padding:15px; font-size:16px; font-weight:600; border:none; border-radius:10px;
+      background:var(--accent); color:#fff; font-family:inherit; cursor:pointer; margin-top:10px; }
+    button:disabled { opacity:.55; }
+    button.secondary { background:var(--bg); color:var(--ink); border:1px solid var(--line); }
+    button.ghost { background:transparent; color:var(--soft); border:none; font-weight:500; }
+    a.btn { display:block; width:100%; padding:14px; font-size:15px; font-weight:600; text-align:center;
+      text-decoration:none; border-radius:10px; background:var(--bg); color:var(--ink);
+      border:1px solid var(--line); margin-top:10px; font-family:inherit; }
+    .hidden { display:none !important; }
+    .msg { margin-top:12px; padding:11px 12px; border-radius:8px; font-size:14px; line-height:1.4; display:none; }
+    .msg.error { display:block; background:var(--err-soft); color:var(--err); }
+    .msg.info  { display:block; background:var(--accent-soft); color:var(--accent); }
+    .msg.ok    { display:block; background:var(--ok-soft); color:var(--ok); }
+
+    .person-btn { text-align:left; font-size:18px; padding:18px 16px; display:flex; align-items:center; gap:12px; }
+    .person-btn .n { width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,.25);
+      display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+    .p-1 { background:var(--p1); } .p-2 { background:var(--p2); }
+    .p-3 { background:var(--p3); } .p-4 { background:var(--p4); }
+
+    .seg { display:flex; flex-wrap:wrap; gap:8px; }
+    .seg button { flex:1 1 45%; margin:0; background:#fff; color:var(--ink); font-weight:500;
+      padding:13px 8px; font-size:14.5px; border:1px solid var(--line); border-radius:8px; }
+    .seg button.on { background:var(--accent); color:#fff; font-weight:600; border-color:var(--accent); }
+    .seg-2 button { flex:1 1 45%; }
+
+    .persontag { font-size:12px; font-weight:600; padding:3px 10px; border-radius:100px;
+      color:#fff; display:inline-block; margin-bottom:10px; }
+
+    .thumb { width:100%; max-height:340px; object-fit:contain; background:#eceff1;
+      border:1px solid var(--line); border-radius:10px; margin-top:12px; }
+    .spinner { display:inline-block; width:16px; height:16px; border:3px solid rgba(255,255,255,.35);
+      border-top-color:#fff; border-radius:50%; animation:sp .8s linear infinite; vertical-align:-3px; margin-right:8px; }
+    @keyframes sp { to { transform:rotate(360deg); } }
+
+    .big-num { text-align:center; font-size:15px; color:var(--soft); margin:10px 0 2px; }
+    .num-box { text-align:center; font-size:60px; font-weight:700; color:var(--accent);
+      background:var(--accent-soft); border-radius:14px; padding:14px 0; margin:6px 0 4px; letter-spacing:.05em; }
+    .num-hint { text-align:center; font-size:14px; color:var(--ink); margin:0 0 14px; line-height:1.45; }
+    .success-big { text-align:center; font-size:40px; margin:2px 0; }
+
+    .loader-full { min-height:60vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; }
+    .loader-full .spinner { width:34px; height:34px; border-width:4px; border-color:rgba(31,92,79,.2); border-top-color:var(--accent); }
+    .loader-full p { color:var(--soft); font-size:14px; }
+  </style>
+</head>
+<body>
+
+  <!-- 0) NAČÍTÁNÍ -->
+  <div class="card" id="scr-load">
+    <div class="loader-full">
+      <span class="spinner"></span>
+      <p>Načítám aplikaci…</p>
+    </div>
+  </div>
+
+  <!-- 1) VÝBĚR OSOBY -->
+  <div class="card hidden" id="scr-osoba">
+    <p class="eyebrow">Doklady auta · Nice</p>
+    <h1>Kdo zapisuje?</h1>
+    <p class="sub">Vyberte sebe — jméno se zapíše k záznamu.</p>
+    <div id="osoba-tlacitka"></div>
+    <div class="msg" id="osoba-msg"></div>
+  </div>
+
+  <!-- 2) ZADÁNÍ JMÉNA (jen pro „někdo jiný") -->
+  <div class="card hidden" id="scr-jmeno">
+    <h1>Jméno zapisujícího</h1>
+    <p class="sub">Napište, kdo účtenku zadává.</p>
+    <label>Jméno</label>
+    <input type="text" id="f-jmeno" placeholder="např. Petr Novák" autocomplete="off">
+    <button onclick="potvrditJmeno()">Pokračovat →</button>
+    <button class="secondary" onclick="zpet('scr-osoba','scr-jmeno')">← Zpět</button>
+    <div class="msg" id="jmeno-msg"></div>
+  </div>
+
+  <!-- 3) ÚDAJE -->
+  <div class="card hidden" id="scr-udaje">
+    <span class="persontag" id="udaje-tag"></span>
+    <h1>Údaje o výdaji</h1>
+    <p class="sub">Vyberte typ výdaje a zemi. Cenu a další údaje přečte AI z fotky.</p>
+
+    <label>Typ výdaje</label>
+    <div class="seg" id="seg-typ">
+      <button type="button" data-typ="Pohonné hmoty" onclick="vyberTyp(this)">⛽ Pohonné hmoty</button>
+      <button type="button" data-typ="Mýtné" onclick="vyberTyp(this)">🛣 Mýtné</button>
+      <button type="button" data-typ="Dálniční známka" onclick="vyberTyp(this)">🎫 Dálniční známka</button>
+      <button type="button" data-typ="__jine__" onclick="vyberTyp(this)">✏ Jiný výdaj</button>
+    </div>
+    <input type="text" id="f-typ-jine" class="hidden" placeholder="Napište typ výdaje" style="margin-top:10px;">
+
+    <label>Kde (země)</label>
+    <div class="seg" id="seg-kde">
+      <button type="button" data-kde="Česko" onclick="vyberKde(this)">Česko</button>
+      <button type="button" data-kde="Francie" onclick="vyberKde(this)">Francie</button>
+      <button type="button" data-kde="Německo" onclick="vyberKde(this)">Německo</button>
+      <button type="button" data-kde="Itálie" onclick="vyberKde(this)">Itálie</button>
+      <button type="button" data-kde="Švýcarsko" onclick="vyberKde(this)">Švýcarsko</button>
+      <button type="button" data-kde="Rakousko" onclick="vyberKde(this)">Rakousko</button>
+      <button type="button" data-kde="__jine__" onclick="vyberKde(this)">✏ Jiná země</button>
+    </div>
+    <input type="text" id="f-kde-jine" class="hidden" placeholder="Napište zemi" style="margin-top:10px;">
+
+    <label>Měna</label>
+    <div class="seg seg-2" id="seg-mena">
+      <button type="button" data-mena="EUR" onclick="vyberMena(this)">EUR €</button>
+      <button type="button" data-mena="CZK" onclick="vyberMena(this)">CZK Kč</button>
+      <button type="button" data-mena="CHF" onclick="vyberMena(this)">CHF</button>
+    </div>
+
+    <button onclick="naFoceni()">Pokračovat k focení →</button>
+    <button class="secondary" onclick="zpetNaZacatek()">← Změnit osobu</button>
+    <div class="msg" id="udaje-msg"></div>
+  </div>
+
+  <!-- 4) FOCENÍ -->
+  <div class="card hidden" id="scr-foto">
+    <span class="persontag" id="foto-tag"></span>
+    <h1>Vyfoťte účtenku</h1>
+    <p class="sub">Vyfoťte účtenku celou, rovně a při dobrém světle. Fotku pak odešlete.</p>
+
+    <button onclick="document.getElementById('inp-camera').click()">📷 Vyfotit účtenku</button>
+    <input type="file" id="inp-camera" accept="image/*" capture="environment" class="hidden" onchange="souborVybran(this)">
+
+    <img id="foto-thumb" class="thumb hidden" alt="náhled">
+
+    <button id="btn-odeslat" class="hidden" onclick="odeslat(false)">✓ Odeslat záznam</button>
+
+    <button class="ghost" onclick="bezUctenky()">Nemám účtenku — uložit slepý záznam</button>
+    <button class="secondary" onclick="zpet('scr-udaje','scr-foto')">← Zpět na údaje</button>
+    <div class="msg" id="foto-msg"></div>
+  </div>
+
+  <!-- 5) HOTOVO -->
+  <div class="card hidden" id="scr-done">
+    <div class="success-big">✅</div>
+    <h1 style="text-align:center;">Uloženo</h1>
+    <p class="big-num">Pořadové číslo záznamu</p>
+    <div class="num-box" id="done-num">—</div>
+    <p class="num-hint" id="done-hint"></p>
+    <button onclick="dalsiZaznam()">📷 Další účtenka</button>
+    <a class="btn hidden" id="lnk-fotka" href="#" target="_blank" rel="noopener">🧾 Otevřít uloženou fotku</a>
+    <button class="secondary" onclick="zpetNaZacatek()">Změnit osobu</button>
+    <div class="msg" id="done-msg"></div>
+  </div>
+
+<script>
+  // ══════════════════════════════════════════════════════════
+  //  ADRESA APPS SCRIPTU (/exec) — sem míří všechna data.
+  // ══════════════════════════════════════════════════════════
+  var API_URL = 'https://script.google.com/macros/s/AKfycbw4HgO1l2N2r1OYcaAP5VJonK5Kk42xzaDXCzriGV9pM4Tj7-5Zx6UvS8faTAKQA7I/exec';
+
+  // ---------- stav ----------
+  var stav = {
+    kdo:'', typ:'', kde:'', mena:'',
+    fotoB64:null, fotoMime:null, fotoDataUrl:null, fotoW:0, fotoH:0
+  };
+
+  var PERSON_COLORS = ['p-1','p-2','p-3','p-4'];
+  var MENA_DLE_ZEME = {
+    'Česko':'CZK', 'Francie':'EUR', 'Německo':'EUR',
+    'Itálie':'EUR', 'Švýcarsko':'CHF', 'Rakousko':'EUR'
+  };
+
+  // ---------- utility ----------
+  function show(id){ document.getElementById(id).classList.remove('hidden'); }
+  function hide(id){ document.getElementById(id).classList.add('hidden'); }
+  function vseSchovat(){ ['scr-load','scr-osoba','scr-jmeno','scr-udaje','scr-foto','scr-done'].forEach(hide); }
+  function setMsg(id,t,typ){ var el=document.getElementById(id); el.className='msg'+(typ?' '+typ:''); el.textContent=t||''; }
+  function zpet(cil,akt){ hide(akt); show(cil); }
+  function personTag(elId){ var el=document.getElementById(elId); el.textContent=stav.kdo; el.style.background='var(--accent)'; }
+
+  // ---------- volání serveru přes fetch ----------
+  // Posíláme jako text/plain, aby prohlížeč nevyvolal CORS preflight,
+  // který Apps Script neumí obsloužit. Server si tělo přečte přes JSON.parse.
+  function apiPost(payload){
+    return fetch(API_URL, {
+      method:'POST',
+      headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    }).then(function(r){ return r.json(); });
+  }
+  function apiGet(akce){
+    return fetch(API_URL + '?akce=' + encodeURIComponent(akce))
+      .then(function(r){ return r.json(); });
+  }
+
+  // ---------- init ----------
+  var OSOBY = [];
+  apiGet('init').then(function(res){
+    OSOBY = (res && res.osoby) ? res.osoby : ['František','David','Slávek'];
+    vykresliOsoby();
+    vseSchovat(); show('scr-osoba');
+  }).catch(function(){
+    // I kdyby init selhal, appka půjde použít s výchozími jmény.
+    OSOBY = ['František','David','Slávek'];
+    vykresliOsoby();
+    vseSchovat(); show('scr-osoba');
+    setMsg('osoba-msg','Nepodařilo se spojit se serverem při startu, zkuste obnovit stránku, pokud odesílání nebude fungovat.','info');
+  });
+
+  function vykresliOsoby(){
+    var box=document.getElementById('osoba-tlacitka');
+    var html='';
+    OSOBY.forEach(function(jm,i){
+      html += '<button class="person-btn '+PERSON_COLORS[i]+'" onclick="vyberOsobu(\''+
+        String(jm).replace(/'/g,"\\'")+'\')"><span class="n">'+(i+1)+'</span> '+jm+'</button>';
+    });
+    html += '<button class="person-btn p-4" onclick="nekdoJiny()"><span class="n">✏</span> Někdo jiný…</button>';
+    box.innerHTML=html;
+  }
+
+  function vyberOsobu(jm){
+    stav.kdo=jm; vseSchovat();
+    personTag('udaje-tag'); personTag('foto-tag'); show('scr-udaje');
+  }
+  function nekdoJiny(){
+    vseSchovat();
+    document.getElementById('f-jmeno').value=''; setMsg('jmeno-msg','','');
+    show('scr-jmeno');
+    setTimeout(function(){ document.getElementById('f-jmeno').focus(); }, 200);
+  }
+  function potvrditJmeno(){
+    var jm=document.getElementById('f-jmeno').value.trim();
+    if(!jm){ setMsg('jmeno-msg','Napište prosím jméno.','error'); return; }
+    stav.kdo=jm; vseSchovat();
+    personTag('udaje-tag'); personTag('foto-tag'); show('scr-udaje');
+  }
+  function zpetNaZacatek(){ resetVse(); vseSchovat(); show('scr-osoba'); }
+
+  // ---------- údaje ----------
+  function vyberTyp(btn){
+    stav.typ=btn.getAttribute('data-typ'); oznac('seg-typ',btn);
+    var jine=document.getElementById('f-typ-jine');
+    if(stav.typ==='__jine__'){ jine.classList.remove('hidden'); jine.focus(); }
+    else { jine.classList.add('hidden'); }
+  }
+  function vyberKde(btn){
+    stav.kde=btn.getAttribute('data-kde'); oznac('seg-kde',btn);
+    var jine=document.getElementById('f-kde-jine');
+    if(stav.kde==='__jine__'){ jine.classList.remove('hidden'); jine.focus(); }
+    else { jine.classList.add('hidden'); var m=MENA_DLE_ZEME[stav.kde]; if(m){ nastavMenu(m); } }
+  }
+  function vyberMena(btn){ stav.mena=btn.getAttribute('data-mena'); oznac('seg-mena',btn); }
+  function nastavMenu(m){
+    stav.mena=m;
+    var box=document.getElementById('seg-mena');
+    Array.prototype.forEach.call(box.querySelectorAll('button'), function(b){
+      b.classList.toggle('on', b.getAttribute('data-mena')===m);
+    });
+  }
+  function oznac(segId,btn){
+    var box=document.getElementById(segId);
+    Array.prototype.forEach.call(box.querySelectorAll('button'), function(b){ b.classList.remove('on'); });
+    btn.classList.add('on');
+  }
+
+  function naFoceni(){
+    if(!stav.typ){ setMsg('udaje-msg','Vyberte typ výdaje.','error'); return; }
+    if(stav.typ==='__jine__'){
+      var tj=document.getElementById('f-typ-jine').value.trim();
+      if(!tj){ setMsg('udaje-msg','Napište typ výdaje.','error'); return; }
+      stav.typ=tj;
+    }
+    if(!stav.kde){ setMsg('udaje-msg','Vyberte zemi.','error'); return; }
+    if(stav.kde==='__jine__'){
+      var kj=document.getElementById('f-kde-jine').value.trim();
+      if(!kj){ setMsg('udaje-msg','Napište zemi.','error'); return; }
+      stav.kde=kj;
+    }
+    if(!stav.mena){ setMsg('udaje-msg','Vyberte měnu.','error'); return; }
+    setMsg('udaje-msg','','');
+    vseSchovat(); resetFoto(); show('scr-foto');
+  }
+
+  // ---------- focení ----------
+  function resetFoto(){
+    stav.fotoB64=null; stav.fotoMime=null; stav.fotoDataUrl=null; stav.fotoW=0; stav.fotoH=0;
+    hide('foto-thumb'); hide('btn-odeslat'); setMsg('foto-msg','','');
+    document.getElementById('inp-camera').value='';
+  }
+  function souborVybran(inp){
+    var file=inp.files && inp.files[0];
+    if(!file) return;
+    setMsg('foto-msg','Zpracovávám fotku…','info');
+    var url=URL.createObjectURL(file);
+    var img=new Image();
+    img.onload=function(){
+      var MAX=3000;
+      var nw=img.naturalWidth, nh=img.naturalHeight;
+      var scale=Math.min(1, MAX/Math.max(nw,nh));
+      var w=Math.round(nw*scale), h=Math.round(nh*scale);
+      var canvas=document.createElement('canvas');
+      canvas.width=w; canvas.height=h;
+      var ctx=canvas.getContext('2d',{alpha:false});
+      ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+      ctx.drawImage(img,0,0,w,h);
+      URL.revokeObjectURL(url);
+      var q=0.85;
+      var dataUrl=canvas.toDataURL('image/jpeg',q);
+      while(dataUrl.length > 4.6*1024*1024 && q>0.4){ q-=0.1; dataUrl=canvas.toDataURL('image/jpeg',q); }
+      stav.fotoDataUrl=dataUrl; stav.fotoB64=dataUrl.split(',')[1];
+      stav.fotoMime='image/jpeg'; stav.fotoW=w; stav.fotoH=h;
+      var t=document.getElementById('foto-thumb'); t.src=dataUrl; t.classList.remove('hidden');
+      show('btn-odeslat');
+      setMsg('foto-msg','Fotka připravena. Klepněte na „Odeslat záznam“.','ok');
+    };
+    img.onerror=function(){ URL.revokeObjectURL(url); setMsg('foto-msg','Fotku se nepodařilo načíst. Zkuste to znovu.','error'); };
+    img.src=url;
+  }
+  function bezUctenky(){
+    if(!confirm('Uložit záznam BEZ fotky účtenky?\n\nTento výdaj patrně nebude proplacen, ale záznam se založí.')) return;
+    stav.fotoB64=null; stav.fotoMime=null; stav.fotoDataUrl=null;
+    odeslat(true);
+  }
+
+  // ---------- odeslání ----------
+  function odeslat(bezFotky){
+    if(!bezFotky && !stav.fotoB64){
+      setMsg('foto-msg','Nejdřív vyfoťte účtenku, nebo zvolte „Nemám účtenku“.','error'); return;
+    }
+    var btn=document.getElementById('btn-odeslat');
+    btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Ukládám…';
+    setMsg('foto-msg','','');
+
+    var payload={
+      kdo:stav.kdo, typ:stav.typ, kde:stav.kde, mena:stav.mena,
+      base64:stav.fotoB64, mime:stav.fotoMime
+    };
+
+    apiPost(payload).then(function(res){
+      btn.disabled=false; btn.innerHTML='✓ Odeslat záznam';
+      if(!res || !res.success){
+        setMsg('foto-msg',(res&&res.message)?res.message:'Uložení selhalo.','error'); return;
+      }
+      ukazHotovo(res, bezFotky);
+    }).catch(function(err){
+      btn.disabled=false; btn.innerHTML='✓ Odeslat záznam';
+      setMsg('foto-msg','Chyba spojení se serverem: '+err.message,'error');
+    });
+  }
+
+  // ---------- hotovo ----------
+  function ukazHotovo(res, bezFotky){
+    vseSchovat();
+    document.getElementById('done-num').textContent=res.poradi;
+    var hint;
+    if(bezFotky){ hint='Slepý záznam bez účtenky byl založen.'; }
+    else {
+      hint='✍ Napište číslo <b>'+res.poradi+'</b> na papírovou účtenku.<br>'+
+           'AI teď na pozadí dočte částku a datum — můžete appku klidně zavřít.';
+    }
+    document.getElementById('done-hint').innerHTML=hint;
+    var lnk=document.getElementById('lnk-fotka');
+    if(res.fotkaUrl){ lnk.href=res.fotkaUrl; lnk.classList.remove('hidden'); }
+    else { lnk.classList.add('hidden'); }
+    show('scr-done');
+  }
+
+  function dalsiZaznam(){
+    resetFoto(); stav.typ=''; stav.kde=''; stav.mena='';
+    ['seg-typ','seg-kde','seg-mena'].forEach(function(id){
+      Array.prototype.forEach.call(document.getElementById(id).querySelectorAll('button'), function(b){ b.classList.remove('on'); });
+    });
+    document.getElementById('f-typ-jine').classList.add('hidden'); document.getElementById('f-typ-jine').value='';
+    document.getElementById('f-kde-jine').classList.add('hidden'); document.getElementById('f-kde-jine').value='';
+    setMsg('udaje-msg','','');
+    vseSchovat(); show('scr-udaje');
+  }
+  function resetVse(){
+    stav={ kdo:'', typ:'', kde:'', mena:'', fotoB64:null, fotoMime:null, fotoDataUrl:null, fotoW:0, fotoH:0 };
+    ['seg-typ','seg-kde','seg-mena'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el) Array.prototype.forEach.call(el.querySelectorAll('button'), function(b){ b.classList.remove('on'); });
+    });
+    var tj=document.getElementById('f-typ-jine'); if(tj){ tj.classList.add('hidden'); tj.value=''; }
+    var kj=document.getElementById('f-kde-jine'); if(kj){ kj.classList.add('hidden'); kj.value=''; }
+    resetFoto();
+  }
+</script>
+</body>
+</html>
